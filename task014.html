@@ -37,6 +37,7 @@
         aqiData.sort(function(a,b){
           return b[1]-a[1];
         });
+        oList.innerHTML = "";
         for(var i=0;i<aqiData.length;i++){
           
           if(aqiData[i][1]>60){
