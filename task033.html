@@ -2,9 +2,207 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title></title>
+    <title>听命令的小方块</title>
 </head>
+<style>
+    *, *:before, *:after {
+        -webkit-box-sizing:border-box;
+        -moz-box-sizing:border-box;
+        box-sizing:border-box;
+    }
+    body {
+        font-family:"Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+        margin:0;
+        color:#333;
+    }
+    img {
+        border:0;
+        vertical-align:bottom;
+    }
+    a {
+        display:inline-block;
+        color:inherit;
+        text-decoration:none;
+        cursor:pointer;
+    }
+    h1,h2,h3,h4,h5,h6 {
+        font-weight:normal;
+    }
+    table {
+        border-spacing:0;
+        border-collapse:collapse;
+        background-color:transparent;
+    }
+    input {
+        margin:0;
+        font:inherit;
+        color:inherit;
+    }
+    .container {
+        position:relative;
+    }
+    .background > tbody {
+        position:absolute;
+        top:0;
+        left:0;
+    }
+    .background td{
+        width:50px;
+        height:50px;
+        border-right:1px solid #aaa;
+        border-bottom:1px solid #aaa;
+        font-size:20px;
+        font-weight:bold;
+        text-align:center;
+    }
+    .background td:first-child {
+        border-right:2px solid #333;
+        border-bottom:0;
+    }
+    .background td:last-child {
+        border-right:2px solid #333;
+    }
+    .background tr:first-child td {
+        border-right:0;
+        border-bottom:2px solid #333;
+    }
+    .background tr:last-child td {
+        border-bottom:2px solid #333;
+    }
+    .background tr:first-child td:first-child {
+        border-bottom:0;
+    }
+    .background tr:last-child td:first-child {
+        border-bottom:0;
+    }
+    .square {
+        width:50px;
+        height:50px;
+        background-color:#f00;
+        transition:0.3s;
+        -webkit-transition:0.3s;
+    }
+    .square-face {
+        width:50px;
+        height:15px;
+        background-color:#00f;
+    }
+    .control {
+        margin-top:15px;
+        margin-left:45px;
+    }
+    .control input {
+        margin:5px;
+    }
+    #code{
+        margin: 50px 0 0 50px;
+    }
+</style>
 <body>
-
+<div id="table"></div>
+<input type="text" id="code"><input type="button" id="do" value="执行">
+    <input type="button" id="go" value="GO">
+    <input type="button" id="tun_lef" value="TUN LEF">
+    <input type="button" id="tun_rig" value="TUN RIG">
+    <input type="button" id="tun_bac" value="TUN BAC">
 </body>
+<script type="text/javascript">
+    craet_table();
+    var sqiare = document.createElement('div');
+    sqiare.innerHTML='<div class="square-face"></div>';
+    sqiare.id='square';
+    sqiare.className = 'square';
+    sqiare.style.transform = 'rotate(0deg);';
+    var x = 6;var y=6;
+    var now_square = document.getElementsByTagName('tr')[x].getElementsByTagName('td')[y];
+    now_square.appendChild(sqiare);
+    /*创建表格*/
+   function craet_table() {
+       var bg = document.createElement('table');
+       bg.id = 'background';
+       bg.className = 'background';
+       var bg_tr = [];
+       for (var i = 0; i < 11; i++) {
+           bg_tr[i] = document.createElement("tr");
+           bg.appendChild(bg_tr[i]);
+           var bg_td = [];
+           for (var j = 0; j < 11; j++) {
+               bg_td[j] = document.createElement("td");
+               if (i === 0 && j > 0) {
+                   bg_td[j].innerHTML = j;
+               }
+               if (i > 0 && j === 0) {
+                   bg_td[j].innerHTML = i;
+               }
+               bg_tr[i].appendChild(bg_td[j]);
+           }
+       }
+       document.getElementById('table').appendChild(bg);
+   }
+
+    /*移动方法*/
+    function mov(){
+        var now = document.getElementById('square').parentNode;
+        var html = now.innerHTML;
+        var now_square = document.getElementsByTagName('tr')[x].getElementsByTagName('td')[y];
+        now_square.innerHTML = html;
+        now.innerHTML='';
+    }
+    /*获取转向角度的具体数字*/
+    function get_transfor_num(){
+        var now = document.getElementById('square');
+        var F = now.style.transform;
+        return F.slice(7, F.indexOf('d'))
+    }
+    /*方向判断，1为向上，2为向左，3为向下，4为向右*/
+    function return_turn(F){
+        F = F*1;
+        var J;
+        if((/^-?(\w)*$/.test((F)/360))){J='1'}
+        else if((/^-?(\w)*$/.test((F+90)/360))){J='2'}
+        else if((/^-?(\w)*$/.test((F+180)/360))){J='3'}
+        else if((/^-?(\w)*$/.test((F+270)/360))){J='4'}
+        return J;
+    }
+    /*执行转向，-1向右，0不变，1向左，2翻转*/
+    function do_turn(num){
+        var now = document.getElementById('square');
+        var F = now.style.transform;
+        F = F.slice(7, F.indexOf('d'))-90*num;
+        now.style.transform = 'rotate('+F+'deg)'
+    }
+    /*执行前进，1向上一格，2向左一格，4向右一格，3向下一格*/
+    function go(t){
+            if(t==1&&x>1){x-=1;mov()}
+            if(t==3&&x<10){x+=1;mov()}
+            if(t==2&&y>1){y-=1;mov()}
+            if(t==4&&y<10){y+=1;mov()}
+    }
+    var do_btn = document.getElementById("do");
+    var code = document.getElementById('code');
+    do_btn.addEventListener('click', function() {
+        var do_code = code.value;
+        if(do_code=='GO'){go(return_turn(get_transfor_num()))}
+        else if(do_code=='TUN LEF'){do_turn(1)}
+        else if(do_code=='TUN RIG'){do_turn(-1)}
+        else if(do_code=='TUN BAC'){do_turn(2)}
+        else{code.value='';alert('不是标准的指令')}
+    }, false);
+    var GO = document.getElementById('go');
+    var TL = document.getElementById('tun_lef');
+    var TR = document.getElementById('tun_rig');
+    var TB = document.getElementById('tun_bac');
+    GO.addEventListener('click',function(){
+        go(return_turn(get_transfor_num()))
+    });
+    TL.addEventListener('click',function(){
+        do_turn(1)
+    });
+    TR.addEventListener('click',function(){
+        do_turn(-1)
+    });
+    TB.addEventListener('click',function(){
+        do_turn(2)
+    });
+</script>
 </html>
